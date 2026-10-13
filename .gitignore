@@ -1,0 +1,32 @@
+# Python 临时文件
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# 工作台运行时数据
+workbench/data/todo.db
+workbench/data/*.db
+workbench/backup/
+
+# 测试样本（大文件）
+Sample/*.xlsx
+Sample/*.xls
+
+# 排班 skill 的输入输出
+input/*.xlsx
+output/*.xlsx
+output/*.ics
+output/run_log.txt
+
+# 配置文件（含本地路径）
+config.json
+*.config.json
+
+# 编辑器
+.idea/
+.vscode/
+
+# 系统
+.DS_Store
+Thumbs.db

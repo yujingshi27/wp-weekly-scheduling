@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="section">
+  <div class="section-head">
+    <h2>工时筛选</h2>
+    <div class="section-actions">
+      <button class="btn" id="btn-refresh-ts" title="重新读取 Timesheet 文件">刷新 Timesheet</button>
+      <button class="btn" id="btn-refresh-budget" title="重新读取 WP服务单的 Outlook Hours">刷新预算</button>
+      <a class="btn" href="/settings">数据源设置</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="mode-toggle">
+      <label><input type="radio" name="mode" value="project" checked> 按项目</label>
+      <label><input type="radio" name="mode" value="person"> 按人</label>
+    </div>
+
+    <div class="field" id="code-group">
+      <label>项目 code（可多个）</label>
+      <div id="code-inputs" class="multi-inputs"></div>
+      <button type="button" class="btn btn-sm" id="add-code">+ 添加项目</button>
+    </div>
+
+    <div class="field">
+      <label>manager（可多个，模糊匹配，忽略大小写）</label>
+      <div id="manager-inputs" class="multi-inputs"></div>
+      <button type="button" class="btn btn-sm" id="add-manager">+ 添加 manager</button>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn primary" id="btn-filter">筛选</button>
+      <button class="btn" id="btn-export">导出 Excel</button>
+      <span class="muted" id="status-line"></span>
+    </div>
+  </div>
+</section>
+
+<section class="section hidden" id="result-section">
+  <div class="section-head">
+    <h2>筛选结果 <span class="muted" id="result-count"></span></h2>
+  </div>
+  <div class="card table-wrap" id="result-table"></div>
+</section>
+
+<section class="section hidden" id="totals-section">
+  <div class="section-head">
+    <h2>项目合计（合计工时 vs 预算）</h2>
+  </div>
+  <div class="card table-wrap" id="totals-table"></div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='timesheet.js') }}"></script>
+{% endblock %}

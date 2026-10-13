@@ -1,0 +1,220 @@
+## 迁移总览
+
+你要把在自己电脑上调好的整个 skill 文件夹，原样搬到工作电脑，然后：
+1. 装 Python + 依赖；
+2. 放好项目；
+3. 配置 Lingma IDE；
+4. 首次跑通；
+5. 注册每日弹窗任务；
+6. 以后双击 bat 使用。
+
+整个方案**不调用外部 API、不访问外部 AI 网站**，纯本地 Python + Excel + Outlook COM + Windows 任务计划。
+
+---
+
+## 第 1 步：在自己电脑整理并打包
+
+确认 skill 目录结构完整，类似：
+
+```
+wp-scheduling/
+├── .lingma/
+│   └── rules/
+│       └── project_rules.md
+├── SKILL.md
+├── scripts/
+│   ├── generate_schedule.py
+│   ├── daily_check.py
+│   └── requirements.txt
+├── input/
+│   └── （放样本或留空）
+├── output/
+│   └── （清空，别把旧输出带过去）
+├── run_full.bat
+├── run_append.bat
+├── register_task.bat
+└── unregister_task.bat
+```
+
+**打包前：**
+- 清空 `output/`，避免旧文件干扰。
+- 删除 `__pycache__/`、`.venv/`、临时文件。
+- 如果 `input/` 里有敏感数据，按公司规定处理；可以只放一个空白模板或样本。
+- 确认 `requirements.txt` 内容至少包含：
+  ```
+  pandas
+  openpyxl
+  pywin32
+  win10toast
+  ```
+
+**打包：**
+- 把整个 `wp-scheduling` 文件夹压缩成 `wp-scheduling.zip`。
+- 用公司允许的方式传到工作电脑：U 盘、内网共享、企业网盘。注意数据安全合规。
+
+---
+
+## 第 2 步：工作电脑安装 Python 和依赖
+
+### 2.1 安装 Python
+
+- 下载 Python 3.9 或更高版本（建议 64 位，和 Outlook 位数一致）。
+- 安装时**勾选 “Add Python to PATH”**。
+- 安装完成后，打开 cmd 验证：
+  ```cmd
+  python --version
+  pip --version
+  ```
+  能显示版本号即可。
+
+### 2.2 安装依赖
+
+**如果工作电脑能访问内网 PyPI 或可联网 pip：**
+```cmd
+pip install pandas openpyxl pywin32 win10toast
+```
+
+**如果工作电脑不能联网，用离线安装：**
+
+在自己电脑上先下载 whl 包：
+```cmd
+pip download pandas openpyxl pywin32 win10toast -d whl
+```
+把 `whl` 文件夹和项目一起拷到工作电脑，然后：
+```cmd
+pip install --no-index --find-links=whl pandas openpyxl pywin32 win10toast
+```
+
+**pywin32 安装后可能需要执行：**
+```cmd
+python Scripts\pywin32_postinstall.py -install
+```
+路径通常在 Python 安装目录下的 `Scripts`。如果 COM 调用报错，用管理员身份运行这条命令。
+
+**win10toast 如果装不上或不弹窗：**
+脚本里已设计降级方案（PowerShell 弹窗）。先跳过，后面测试时看 daily_check.py 是否正常。
+
+---
+
+## 第 3 步：解压并放置项目
+
+- 在工作电脑创建目录，例如：
+  ```
+  D:\WP排班\wp-scheduling
+  ```
+- 把 `wp-scheduling.zip` 解压到该目录。
+- 确认目录结构和第 1 步一致。
+- 把实际使用的 `WP服务单.xlsx` 放到 `input/` 目录。
+  - 文件名随意，脚本支持动态扫描。
+  - 但必须包含名为“WP服务单”的 sheet，且表头有 `Engagement Code` 和 `剩余hours`。
+
+---
+
+## 第 4 步：配置 Lingma IDE
+
+1. 打开 Lingma IDE，选择“打开文件夹”，指向 `D:\WP排班\wp-scheduling`。
+2. 确认项目根目录下有 `.lingma\rules\project_rules.md`。
+   - 如果打包时没带，手动创建，内容：
+     ```markdown
+     # 项目规则：WP周排班
+
+     当用户要求生成WP排班、更新排班、刷新DDL提醒时，运行：
+     python scripts/generate_schedule.py --mode full --input-dir input --output-dir output
+
+     或双击 run_full.bat / run_append.bat。
+     详细规则见 SKILL.md。
+     ```
+3. 如果独立 Lingma IDE 有“项目规则”设置入口，通过 UI 导入该文件；没有的话，`.lingma/rules/project_rules.md` 通常会被识别。
+4. **测试灵码是否能触发：** 在灵码对话框里说：
+   > 跑一下 WP 排班，用 full 模式
+   
+   如果灵码能调用终端执行脚本，就成功了。如果不行，不影响使用，你直接双击 bat 即可。灵码仍可用来改脚本、排错。
+
+---
+
+## 第 5 步：首次运行验证
+
+打开 cmd，进入项目目录：
+```cmd
+cd /d D:\WP排班\wp-scheduling
+python scripts\generate_schedule.py --mode full --input-dir input --output-dir output
+```
+
+或者直接双击 `run_full.bat`。
+
+**检查以下内容：**
+1. `output/` 目录生成 `WP周排班_YYYYMMDD_HHMM.xlsx`、`项目关键节点.ics`、`run_log.txt`。
+2. 打开 Excel，确认 sheet：
+   - 周排班-纵表
+   - 周排班-宽表
+   - 周校验
+   - 项目工时校验
+   - 数据质量校验
+   - 项目关键节点
+   - 日历提醒汇总
+3. 打开 Outlook 日历，看是否出现带 `WP-DDL-` 的事件。
+4. 查看 `run_log.txt`，确认无报错、无异常。
+
+如果 Outlook 事件没出现，看 `run_log.txt` 是否提示降级为 ics 模式。
+
+---
+
+## 第 6 步：注册每日弹窗任务
+
+- 双击 `register_task.bat`。
+- 它会调用 `schtasks` 创建名为 `WP_DDL_DailyCheck` 的任务，每天早上 8:30 运行 `daily_check.py`。
+- 打开“任务计划程序”，确认任务存在。
+- 右键任务，选择“运行”，测试是否弹窗。
+- 手动测试也可以：
+  ```cmd
+  python scripts\daily_check.py
+  ```
+  如果未来 7 天内有 DDL，应弹 Windows 通知。
+
+**如果以后不想用了：** 双击 `unregister_task.bat` 删除任务。
+
+**如果注册失败：**
+- 检查 `register_task.bat` 里的路径是否指向正确的项目目录。
+- 可能需要以管理员身份运行一次 `register_task.bat`。
+- 如果公司策略禁止任务计划，就放弃每日弹窗，仅靠 Outlook 日历提醒。
+
+---
+
+## 第 7 步：日常使用流程
+
+| 场景 | 操作 |
+|:--|:--|
+| 第一次生成、彻底重排 | 双击 `run_full.bat` |
+| 新增项目、保留手工排班 | 双击 `run_append.bat` |
+| 只改了 DDL、排班没动 | 改 `input/WP服务单.xlsx` 的四列日期，双击 `run_full.bat` |
+| 改了 DDL，同时想保留手工排班 | 改 `WP服务单.xlsx`，双击 `run_append.bat` |
+| 查看排班结果 | 打开 `output/` 下最新 Excel |
+| 查看 DDL 提醒 | 看 Outlook 日历，或等每天 8:30 弹窗 |
+
+**重要：DDL 只改 `WP服务单.xlsx`，不要改输出 Excel 的“项目关键节点”sheet。** full 模式会覆盖。
+
+---
+
+## 第 8 步：常见问题排查
+
+| 问题 | 解决 |
+|:--|:--|
+| `python` 不是内部命令 | Python 未加入 PATH，重新安装勾选 Add to PATH，或手动添加 |
+| pip 安装失败 | 用离线 whl；或换内网源 `pip install -i http://内网pypi/simple ...` |
+| pywin32 COM 报错 | 管理员运行 `python Scripts\pywin32_postinstall.py -install` |
+| Outlook 没反应 | 确认桌面版 Outlook 已配置账户；看 `run_log.txt` 是否降级为 ics |
+| 弹窗不出现 | 检查 win10toast 是否安装；手动运行 `daily_check.py`；检查任务计划 |
+| 找不到输入文件 | 确认 `input/` 下有 xlsx，且包含“WP服务单”sheet 和指定表头 |
+| append 模式找不到基线 | 先跑一次 `run_full.bat` 生成基线 |
+| bat 中文乱码 | 用记事本打开 bat，另存为 ANSI 编码；或在 bat 开头加 `chcp 65001 >nul` |
+
+---
+
+## 安全与合规提醒
+
+- 整个流程不调用外部 API，不上传数据到外部 AI 网站。
+- Lingma IDE 和 Python 脚本都在本机运行。
+- 客户数据存放在公司允许的目录，传输用合规方式。
+- 如果公司禁止 U 盘，用内网共享或企业网盘。
+
+按以上步骤操作，就能把 skill 完整迁移到工作电脑并跑起来。如果某一步卡住，把报错截图或 `run_log.txt` 内容发我，我帮你定位。

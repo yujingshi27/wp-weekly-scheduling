@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="section">
+  <div class="section-head">
+    <h2>待办管理</h2>
+    <div class="section-actions">
+      <button class="btn" id="btn-refresh-ddl" title="重新读取排班输出，更新 DDL 待办">刷新 DDL</button>
+      <button class="btn primary" id="btn-new">+ 新建待办</button>
+    </div>
+  </div>
+
+  <div class="tabs" id="todo-tabs">
+    <button class="tab active" data-tab="今日得做">今日得做 <span class="count" data-count="今日得做">0</span></button>
+    <button class="tab" data-tab="待完成">待完成 <span class="count" data-count="待完成">0</span></button>
+    <button class="tab" data-tab="卡着">卡着 <span class="count" data-count="卡着">0</span></button>
+    <button class="tab" data-tab="等反馈">等反馈 <span class="count" data-count="等反馈">0</span></button>
+    <button class="tab" data-tab="归档">归档</button>
+  </div>
+
+  <div id="archive-bar" class="hidden archive-bar">
+    <input type="text" id="archive-search" class="input" placeholder="按任务名称搜索归档...">
+  </div>
+
+  <div class="card" id="todo-list"></div>
+</section>
+
+<div class="modal-mask hidden" id="modal-mask">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="modal-title">新建待办</h3>
+      <button class="btn icon" id="modal-close" type="button">&times;</button>
+    </div>
+    <form id="todo-form">
+      <div class="field">
+        <label>任务名称</label>
+        <input type="text" id="f-title" required maxlength="200">
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>截止日期</label>
+          <input type="date" id="f-due">
+        </div>
+        <div class="field">
+          <label>状态</label>
+          <select id="f-status">
+            <option>待完成</option>
+            <option>今日得做</option>
+            <option>卡着</option>
+            <option>等反馈</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>分类</label>
+        <select id="f-category">
+          <option>日常任务</option>
+          <option>临时任务</option>
+          <option>常规重复</option>
+          <option>DDL</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>四象限</label>
+        <select id="f-quadrant">
+          <option value="">未设置</option>
+          <option>重要且紧急</option>
+          <option>重要不紧急</option>
+          <option>紧急不重要</option>
+          <option>不紧急不重要</option>
+        </select>
+      </div>
+      <div class="field" id="repeat-box">
+        <label>重复规则</label>
+        <div class="repeat-row">
+          <select id="f-repeat-type">
+            <option value="daily">每天</option>
+            <option value="weekly">每周几</option>
+            <option value="monthly">每月几号</option>
+            <option value="workday">工作日</option>
+          </select>
+          <div id="repeat-weekly" class="weekday-picker hidden">
+            <label><input type="checkbox" value="0">一</label>
+            <label><input type="checkbox" value="1">二</label>
+            <label><input type="checkbox" value="2">三</label>
+            <label><input type="checkbox" value="3">四</label>
+            <label><input type="checkbox" value="4">五</label>
+            <label><input type="checkbox" value="5">六</label>
+            <label><input type="checkbox" value="6">日</label>
+          </div>
+          <div id="repeat-monthly" class="hidden">
+            <input type="number" id="f-repeat-day" min="1" max="31" value="1"> 号
+          </div>
+        </div>
+      </div>
+      <div class="field">
+        <label>标签</label>
+        <div class="tag-chips" id="tag-chips"></div>
+        <div class="tag-add">
+          <input type="text" id="new-tag" class="input" placeholder="自定义标签">
+          <button type="button" class="btn" id="btn-add-tag">添加</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>备注</label>
+        <textarea id="f-note" rows="3"></textarea>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn" id="modal-cancel">取消</button>
+        <button type="submit" class="btn primary" id="modal-save">保存</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='todo.js') }}"></script>
+{% endblock %}

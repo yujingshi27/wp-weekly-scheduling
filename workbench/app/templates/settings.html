@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="section">
+  <div class="section-head">
+    <h2>数据源文件</h2>
+    <div class="section-actions">
+      <button class="btn primary" id="save-sources">保存数据源</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ds-row">
+      <label>Timesheet 文件（工时筛选）</label>
+      <div class="ds-input">
+        <input type="text" id="ds-timesheet" placeholder="粘贴完整路径，或点“浏览”">
+        <button type="button" class="btn" data-pick="ds-timesheet">浏览</button>
+        <span class="ds-flag" data-flag="timesheet"></span>
+      </div>
+    </div>
+    <div class="ds-row">
+      <label>WP服务单文件（Outlook Hours 预算）</label>
+      <div class="ds-input">
+        <input type="text" id="ds-wp_service" placeholder="粘贴完整路径，或点“浏览”">
+        <button type="button" class="btn" data-pick="ds-wp_service">浏览</button>
+        <span class="ds-flag" data-flag="wp_service"></span>
+      </div>
+    </div>
+    <div class="ds-row">
+      <label>排班输出文件（DDL / 项目关键节点）</label>
+      <div class="ds-input">
+        <input type="text" id="ds-schedule_output" placeholder="粘贴完整路径，或点“浏览”">
+        <button type="button" class="btn" data-pick="ds-schedule_output">浏览</button>
+        <span class="ds-flag" data-flag="schedule_output"></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-head">
+    <h2>Timesheet 列设置</h2>
+    <div class="section-actions">
+      <button class="btn" id="load-headers">读取表头</button>
+      <button class="btn primary" id="save-mapping">保存列映射</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="field">
+      <label>Sheet</label>
+      <select id="ts-sheet"><option value="">（默认第一个）</option></select>
+    </div>
+    <div class="mapping-grid" id="mapping-grid">
+      <div class="field"><label>项目编号列</label><select data-key="project_code"></select></div>
+      <div class="field"><label>员工列</label><select data-key="staff"></select></div>
+      <div class="field"><label>manager 列</label><select data-key="manager"></select></div>
+      <div class="field"><label>工时列</label><select data-key="hours"></select></div>
+      <div class="field"><label>期间列</label><select data-key="period"></select></div>
+      <div class="field"><label>描述列</label><select data-key="description"></select></div>
+      <div class="field"><label>项目名称列</label><select data-key="project_name"></select></div>
+    </div>
+    <p class="muted">提示：先保存 Timesheet 路径，再点“读取表头”，然后选择每一列，最后“保存列映射”。</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-head">
+    <h2>数据缓存</h2>
+    <div class="section-actions">
+      <button class="btn" id="refresh-ts">刷新 Timesheet</button>
+      <button class="btn" id="refresh-budget">刷新预算</button>
+    </div>
+  </div>
+  <div class="card">
+    <div id="cache-info" class="muted">加载中...</div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='settings.js') }}"></script>
+{% endblock %}
